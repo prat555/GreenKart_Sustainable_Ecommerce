@@ -195,34 +195,36 @@ export const CarbonIndicatorDetailed = ({ productName, ...props }) => {
 
       {/* Tooltip */}
       {showTooltip && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-10">
-          <div className={`transform transition duration-150 ease-out origin-bottom opacity-100 scale-100`}>
-            <div className={`bg-gray-900 text-white text-xs rounded-xl px-3.5 py-3 w-64 shadow-xl border ${borderColor}`}>
-              <div className="flex items-center mb-2">
-                <ThemedIcon className={`${titleColor} mr-2`} />
-                <span className={`font-semibold ${titleColor}`}>Environmental impact</span>
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 z-50 pointer-events-none">
+          <div className="animate-fadeIn">
+            <div className="bg-gray-100 text-gray-700 rounded-lg px-3.5 py-2.5 w-64 shadow-lg border border-gray-300">
+              <div className="flex items-center gap-1.5 mb-2">
+                <ThemedIcon className={`${isPositive ? 'text-green-600' : isNegative ? 'text-red-600' : 'text-gray-600'} text-sm`} />
+                <span className="font-semibold text-xs text-gray-700">Environmental Impact</span>
               </div>
-              <div className="text-gray-300 mb-2">
-                <div className="font-medium text-gray-100">{carbonData.material}</div>
-                <div className="text-gray-300">{carbonData.benefit}</div>
+              <div className="mb-2">
+                <div className="font-medium text-xs text-gray-800 mb-0.5">{carbonData.material}</div>
+                <div className="text-gray-600 text-[10px] leading-snug">{carbonData.benefit}</div>
               </div>
-              <div className="border-t border-gray-700 pt-2 space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Carbon saved:</span>
-                  <span className="text-green-400 font-semibold">{carbonData.savings.toFixed(1)} kg CO₂</span>
+              <div className="border-t border-gray-300 pt-2 space-y-1.5">
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-gray-600">Carbon saved</span>
+                  <span className="text-green-600 font-semibold">{carbonData.savings.toFixed(1)} kg</span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Production cost:</span>
-                  <span className="text-orange-400 font-semibold">{carbonData.emissions.toFixed(1)} kg CO₂</span>
+                <div className="flex justify-between items-center text-[10px]">
+                  <span className="text-gray-600">Production cost</span>
+                  <span className="text-orange-600 font-semibold">{carbonData.emissions.toFixed(1)} kg</span>
                 </div>
-                <div className="flex justify-between font-bold border-t border-gray-700 pt-2 mt-1">
-                  <span>Net impact:</span>
-                  <span className={isPositive ? 'text-green-400' : isNegative ? 'text-red-400' : 'text-gray-200'}>
+                <div className="flex justify-between items-center border-t border-gray-300 pt-1.5 mt-1.5">
+                  <span className="text-gray-700 font-medium text-xs">Net impact</span>
+                  <span className={`text-xs font-bold ${isPositive ? 'text-green-600' : isNegative ? 'text-red-600' : 'text-gray-700'}`}>
                     {isPositive ? '-' : isNegative ? '+' : ''}{Math.abs(netImpact).toFixed(1)} kg CO₂
                   </span>
                 </div>
               </div>
-              <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-gray-900"></div>
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 -mt-px">
+                <div className="border-[6px] border-transparent border-t-gray-100"></div>
+              </div>
             </div>
           </div>
         </div>

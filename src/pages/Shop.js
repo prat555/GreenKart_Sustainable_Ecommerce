@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FaHeart, FaShoppingCart, FaStar } from "react-icons/fa";
+import { FaHeart, FaShoppingCart, FaStar, FaChevronLeft, FaChevronRight } from "react-icons/fa";
 import { auth } from '../firebase';
 import { CarbonIndicatorDetailed } from "../components/CarbonIndicator";
 
@@ -22,6 +22,8 @@ const Shop = () => {
   const [wishlist, setWishlist] = useState({});
   const [wishlistMessage, setWishlistMessage] = useState("");
   const [cart, setCart] = useState({});
+  const [currentPage, setCurrentPage] = useState(1);
+  const productsPerPage = 28;
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -73,6 +75,7 @@ const Shop = () => {
         setProducts(productsData);
         setWishlist(wishlistData.reduce((acc, item) => ({ ...acc, [item.productId]: true }), {}));
         setCart(cartData.reduce((acc, item) => ({ ...acc, [item.productId]: item.quantity }), {}));
+        setCurrentPage(1); // Reset to first page when filters change
       } catch (err) {
         setError(err.message);
       } finally {
@@ -166,53 +169,65 @@ const Shop = () => {
     }
   };
 
+  // Calculate pagination
+  const indexOfLastProduct = currentPage * productsPerPage;
+  const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
+  const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
+  const totalPages = Math.ceil(products.length / productsPerPage);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+    window.scrollTo(0, 0);
+  };
+
   return (
-    <div className="p-6 flex flex-wrap justify-center items-start gap-6 bg-gray-75 min-h-screen">
-      {/* Wishlist Message */}
-      {wishlistMessage && (
-        <div className="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-md shadow-lg z-50">
-          {wishlistMessage}
-        </div>
-      )}
+    <div className="p-6 bg-gray-75 min-h-screen">
+      <div className="flex flex-wrap justify-center items-start gap-6">
+        {/* Wishlist Message */}
+        {wishlistMessage && (
+          <div className="fixed top-5 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-md shadow-lg z-50">
+            {wishlistMessage}
+          </div>
+        )}
 
-      {/* Search Results Header removed: query will be reflected in Navbar search input */}
+        {/* Search Results Header removed: query will be reflected in Navbar search input */}
 
-      {/* Loading and Error Handling */}
-      {loading && (
-        <div className="flex flex-wrap justify-center items-start gap-6 w-full">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center w-72 min-h-[420px] animate-pulse">
-              <div className="w-48 h-48 bg-gray-200 rounded-lg mb-2 shadow-md"></div>
-              <div className="h-5 bg-gray-200 rounded w-64 mb-2"></div>
-              <div className="h-3 bg-gray-200 rounded w-56 mb-2"></div>
-              <div className="h-5 bg-gray-200 rounded w-32 mb-2"></div>
-              <div className="h-4 bg-gray-200 rounded w-40 mb-2"></div>
-              <div className="flex space-x-2 mt-2 w-full justify-center">
-                <div className="h-7 bg-gray-200 rounded w-24"></div>
-                <div className="h-7 bg-gray-200 rounded w-20"></div>
+        {/* Loading and Error Handling */}
+          {loading && (
+          <div className="flex flex-wrap justify-center items-start gap-6 w-full">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="bg-white p-4 rounded-lg shadow-lg flex flex-col items-center w-72 min-h-[420px] animate-pulse">
+                <div className="w-48 h-48 bg-gray-200 rounded-lg mb-2 shadow-md"></div>
+                <div className="h-5 bg-gray-200 rounded w-64 mb-2"></div>
+                <div className="h-3 bg-gray-200 rounded w-56 mb-2"></div>
+                <div className="h-5 bg-gray-200 rounded w-32 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-40 mb-2"></div>
+                <div className="flex space-x-2 mt-2 w-full justify-center">
+                  <div className="h-7 bg-gray-200 rounded w-24"></div>
+                  <div className="h-7 bg-gray-200 rounded w-20"></div>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
-      {error && <p className="text-center text-red-500 text-lg">{error}</p>}
-      {!loading && !error && products.length === 0 && (
-        <p className="text-center text-gray-500 text-lg">
-          {searchQuery ? `No products found for "${searchQuery}"` : "No products available."}
-        </p>
-      )}
+            ))}
+          </div>
+        )}
+        {error && <p className="text-center text-red-500 text-lg w-full">{error}</p>}
+        {!loading && !error && products.length === 0 && (
+          <p className="text-center text-gray-500 text-lg w-full">
+            {searchQuery ? `No products found for "${searchQuery}"` : "No products available."}
+          </p>
+        )}
 
-      {/* Product List */}  
-      {!loading &&
-        !error &&
-        products.map((product) => {
+        {/* Product List */}  
+        {!loading &&
+          !error &&
+          currentProducts.map((product) => {
           const discountPercentage = product?.mrp && product.mrp > 0
             ? Math.max(0, Math.round(((product.mrp - product.price) / product.mrp) * 100))
             : null;
           return (
           <div
             key={product._id}
-            className="group bg-white p-4 rounded-xl shadow-sm hover:shadow-xl flex flex-col items-center w-72 border border-gray-100 transition-all duration-200 hover:scale-[1.02] relative hover:ring-1 hover:ring-green-200"
+            className="group bg-white p-4 rounded-xl shadow-sm hover:shadow-xl flex flex-col items-center w-72 border border-gray-100 transition-all duration-200 hover:scale-[1.02] relative hover:ring-1 hover:ring-green-200 hover:z-20"
           >
             {/* Wishlist Button */}
             <button
@@ -239,7 +254,7 @@ const Shop = () => {
             </p>
 
             {/* Carbon Impact Indicator */}
-            <div className="flex justify-center mt-2">
+            <div className="flex justify-center mt-2 mb-1 relative z-10">
               <CarbonIndicatorDetailed productName={product.name} />
             </div>
 
@@ -300,6 +315,107 @@ const Shop = () => {
             </div>
           </div>
         )})}
+      </div>
+
+      {/* Pagination Controls */}
+      {!loading && !error && totalPages > 1 && (
+        <div className="flex justify-between items-center mt-8 mb-4 px-4 max-w-6xl mx-auto">
+          {/* Page Info - Left Side */}
+          <div className="text-left text-gray-400 text-xs">
+            Showing {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, products.length)} of {products.length} products
+          </div>
+
+          {/* Pagination Controls - Right Side */}
+          <div className="flex items-center gap-2">
+            {/* Previous Button */}
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className={`p-1.5 rounded text-xs transition-all ${
+                currentPage === 1
+                  ? 'text-gray-300 cursor-not-allowed'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+              title="Previous"
+            >
+              <FaChevronLeft />
+            </button>
+
+            {/* Page Numbers */}
+            <div className="flex gap-2">
+              {/* First Page */}
+              {currentPage > 3 && (
+                <>
+                  <button
+                    onClick={() => handlePageChange(1)}
+                    className="px-2.5 py-1 rounded text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  >
+                    1
+                  </button>
+                  {currentPage > 4 && <span className="px-1.5 py-1 text-gray-300 text-xs">...</span>}
+                </>
+              )}
+
+              {/* Page Numbers Around Current */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                .filter(page => {
+                  return page === currentPage || 
+                         page === currentPage - 1 || 
+                         page === currentPage + 1 ||
+                         (currentPage <= 2 && page <= 3) ||
+                         (currentPage >= totalPages - 1 && page >= totalPages - 2);
+                })
+                .map(page => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-2.5 py-1 rounded text-xs font-medium transition-all ${
+                      currentPage === page
+                        ? 'bg-gray-600 text-white'
+                        : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+
+              {/* Last Page */}
+              {currentPage < totalPages - 2 && (
+                <>
+                  {currentPage < totalPages - 3 && <span className="px-1.5 py-1 text-gray-300 text-xs">...</span>}
+                  <button
+                    onClick={() => handlePageChange(totalPages)}
+                    className="px-2.5 py-1 rounded text-xs font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                  >
+                    {totalPages}
+                  </button>
+                </>
+              )}
+            </div>
+
+            {/* Next Button */}
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className={`p-1.5 rounded text-xs transition-all ${
+                currentPage === totalPages
+                  ? 'text-gray-300 cursor-not-allowed'
+                  : 'text-gray-500 hover:text-gray-700 hover:bg-gray-100'
+              }`}
+              title="Next"
+            >
+              <FaChevronRight />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Page Info for single page or no pagination */}
+      {!loading && !error && products.length > 0 && totalPages <= 1 && (
+        <div className="text-left text-gray-400 text-xs mt-8 mb-4 px-4 max-w-6xl mx-auto">
+          Showing {indexOfFirstProduct + 1}-{Math.min(indexOfLastProduct, products.length)} of {products.length} products
+        </div>
+      )}
     </div>
   );
 };
