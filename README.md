@@ -22,7 +22,7 @@ Greenkart is a full‑stack e‑commerce app for eco‑friendly products. It off
 ## 📁 Project structure
 
 ```
-Shizuka/
+GreenKart/
 ├─ public/
 │  ├─ images/
 │  └─ index.html
